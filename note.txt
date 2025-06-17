@@ -1,0 +1,10 @@
+You must send the following object to get filtered data:
+
+Method : GET
+{
+  "id": "4584",              // CustomerId of the logged-in user
+  "startDate": "2000-11-12", // Start date must be in the format "YYYY-MM-DD"
+  "endDate": "2029-11-27"    // End date must be in the format "YYYY-MM-DD"
+}
+Both start date and end date must be provided. If either is missing, the result will be empty.
+If the date format is incorrect, the query may still run but the result will not be valid.
