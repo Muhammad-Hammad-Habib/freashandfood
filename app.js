@@ -10,4 +10,4 @@ app.use("/svoucher",sVoucherRoute)
 
 app.listen(port, () => {
     console.log(`Server is running http://localhost:${port}`);
-}) 
+})   
