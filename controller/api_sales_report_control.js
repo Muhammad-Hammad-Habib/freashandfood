@@ -5,66 +5,60 @@ import sequelize from "../config/connect_db.js";
 import jsreportClient from 'jsreport-client';
 
 
-class api_reporting_control {
+class api_sales_report_control {
 
     // Get Data and create PDF
-    static getCustomerInvoice = async (req, resp) => {
+    static getSalesReportByCustomer = async (req, resp) => {
         try {
-            console.log(req.body)
-            const result = await sequelize.query("SELECT SVoucherId, SVoucherQTYTotal, SVoucherNo, SVoucherDate, SVoucherQTYTotal, SVoucherNetAmount, SVoucherCustomerId, SVdetails.SVoucherDetailId ,SVdetails.SVoucherDetailItemParticulars, SVdetails.SVoucherDetailSalePrice, SVdetails.SVoucherDetailQTY, SVdetails.SVoucherDetailTotalAmount, SVdetails.SVoucherDetailNetAmount, Customer.CustomerName FROM `SVoucher` JOIN `SVoucherDetail` AS SVdetails ON SVoucherId = SVoucherDetailSVoucherId JOIN `Customer` ON CustomerId = SVoucherCustomerId WHERE SVoucherId = :SVoucherId;",
-                {
-                    replacements: req.body,
-                    type: QueryTypes.SELECT
-                }
-            )
+            const result = await sequelize.query("SELECT Customer.CustomerName, SVdetails.SVoucherDetailItemParticulars, SVdetails.SVoucherDetailSalePrice,  SVdetails.SVoucherDetailUOMName, SUM(SVdetails.SVoucherDetailQTY) AS SVoucherDetailQTY, SUM(SVdetails.SVoucherDetailTotalAmount) AS SVoucherDetailTotalAmount, SVoucherDate FROM `SVoucher` JOIN `SVoucherDetail` AS SVdetails ON SVoucherId = SVoucherDetailSVoucherId JOIN `Customer` ON CustomerId = SVoucherCustomerId WHERE SVoucherCustomerId = 4582 GROUP BY SVdetails.SVoucherDetailItemParticulars", {
+                replacements: req.body,
+                type: QueryTypes.SELECT
+            })
             this.report(req, resp, result)
         } catch (error) {
-            resp.json({ 
+            resp.json({
                 status: "0",
                 message: `getSaleDetailByCustomer function error ${error}`
-            }) 
-        }
+            })
+        } 
     }
-
+ 
     // Use to Create PDF from jsReport localserver
     static report = async (req, resp, result) => {
         try {
             const jsreport = jsreportClient(process.env.PCC_REPORT_SERVER);
             jsreport.render({
                 template: {
-                    shortid: "zT~F0g3",
-                    // engine: "jsrender",
-                    // recipe: "chrome-pdf" 
+                    shortid: "BJen4M1JHle",
                 },
                 data: {
                     data: result
                 }
             }).then((response) => {
-                resp.setHeader("Content-Type", "application/pdf");
+                // resp.setHeader("Content-Type", "application/pdf");
                 // resp.setHeader("Content-Disposition", "attachment; filename=report.pdf");
                 response.pipe(resp)
                 // resp.send("hello")
+            }).catch((err) => {
+                console.log(err)
             })
-                .catch((err) => {
-                    console.log(err)
-                })
         } catch (error) {
             resp.json({
                 status: "0",
-                message: `test function error ${error}`
+                message: `report error ${error}`
             })
         }
     }
-    
+
     // __________________________________________________________________
 
     // for Developer Use
-    static test_report = async (req, resp) => {
+    static test_sales_report = async (req, resp) => {
         try {
             const jsreport = jsreportClient(process.env.PCC_REPORT_SERVER);
             jsreport.render({
                 template: {
-                    shortid: "zT~F0g3",
+                    shortid: "BJen4M1JHle",
                     // engine: "jsrender",
                     // recipe: "chrome-pdf" 
                 },
@@ -93,20 +87,19 @@ class api_reporting_control {
         } catch (error) {
             resp.json({
                 status: "0",
-                message: `test function error ${error}`
+                message: `test_sales_report error ${error}`
             })
         }
     }
 
     // for Developer Use
-    static test_data = async (req, resp) => {
+    static test_data_sales_report = async (req, resp) => {
         try {
             console.log(req.body)
-            const result = await sequelize.query("SELECT SVoucherId, SVoucherNo, SVoucherDate, SVoucherQTYTotal, SVoucherNetAmount, SVoucherCustomerId, SVdetails.SVoucherDetailId ,SVdetails.SVoucherDetailItemParticulars, SVdetails.SVoucherDetailSalePrice, SVdetails.SVoucherDetailQTY, SVdetails.SVoucherDetailTotalAmount, SVdetails.SVoucherDetailNetAmount, Customer.CustomerName FROM `SVoucher` JOIN `SVoucherDetail` AS SVdetails ON SVoucherId = SVoucherDetailSVoucherId JOIN `Customer` ON CustomerId = SVoucherCustomerId WHERE SVoucherId = :SVoucherId;",
-                {
-                    replacements: req.body,
-                    type: QueryTypes.SELECT
-                }
+            const result = await sequelize.query("SELECT Customer.CustomerName, SVdetails.SVoucherDetailItemParticulars, SVdetails.SVoucherDetailSalePrice,  SVdetails.SVoucherDetailUOMName, SUM(SVdetails.SVoucherDetailQTY) AS SVoucherDetailQTY, SUM(SVdetails.SVoucherDetailTotalAmount) AS SVoucherDetailTotalAmount, SVoucherDate FROM `SVoucher` JOIN `SVoucherDetail` AS SVdetails ON SVoucherId = SVoucherDetailSVoucherId JOIN `Customer` ON CustomerId = SVoucherCustomerId WHERE SVoucherCustomerId = 4582 GROUP BY SVdetails.SVoucherDetailItemParticulars", {
+                replacements: req.body,
+                type: QueryTypes.SELECT
+            }
             )
             resp.json({
                 status: "1",
@@ -116,10 +109,10 @@ class api_reporting_control {
         } catch (error) {
             resp.json({
                 status: "0",
-                message: `getSaleDetailByCustomer function error ${error}`
+                message: `test_data_sales_report function error ${error}`
             })
         }
     }
 }
 
-export default api_reporting_control;
+export default api_sales_report_control;
