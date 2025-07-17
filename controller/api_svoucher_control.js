@@ -60,9 +60,7 @@ class api_svoucher_control {
 
     __________________________________________________________________
 
-
-
-    // for Developer Use
+    // for Developer Use for report check
     static test = async (req, resp) => {
         try {
             const jsreport = jsreportClient('http://localhost:5488');
@@ -105,7 +103,7 @@ class api_svoucher_control {
         }
     }
 
-    // for Developer Use
+    // for Developer Use for Query and data check
     static get_data = async (req, resp) => {
         try {
             console.log(req.body)

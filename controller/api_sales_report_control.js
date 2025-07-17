@@ -6,23 +6,28 @@ import jsreportClient from 'jsreport-client';
 
 
 class api_sales_report_control {
-
-    // Get Data and create PDF
     static getSalesReportByCustomer = async (req, resp) => {
+        console.log(req.body)
         try {
-            const result = await sequelize.query("SELECT Customer.CustomerName, SVdetails.SVoucherDetailItemParticulars, SVdetails.SVoucherDetailSalePrice,  SVdetails.SVoucherDetailUOMName, SUM(SVdetails.SVoucherDetailQTY) AS SVoucherDetailQTY, SUM(SVdetails.SVoucherDetailTotalAmount) AS SVoucherDetailTotalAmount, SVoucherDate FROM `SVoucher` JOIN `SVoucherDetail` AS SVdetails ON SVoucherId = SVoucherDetailSVoucherId JOIN `Customer` ON CustomerId = SVoucherCustomerId WHERE SVoucherCustomerId = 4582 GROUP BY SVdetails.SVoucherDetailItemParticulars", {
+            const result = await sequelize.query("SELECT Customer.CustomerName, SVdetails.SVoucherDetailItemParticulars, SVdetails.SVoucherDetailSalePrice,  SVdetails.SVoucherDetailUOMName, SUM(SVdetails.SVoucherDetailQTY) AS SVoucherDetailQTY, SUM(SVdetails.SVoucherDetailTotalAmount) AS SVoucherDetailTotalAmount, SVoucherDate FROM `SVoucher` JOIN `SVoucherDetail` AS SVdetails ON SVoucherId = SVoucherDetailSVoucherId JOIN `Customer` ON CustomerId = SVoucherCustomerId WHERE SVoucherCustomerId = :customer_id GROUP BY SVdetails.SVoucherDetailItemParticulars", {
                 replacements: req.body,
                 type: QueryTypes.SELECT
             })
+            if (result.length == 0) {
+                resp.json({
+                    status: "0",
+                    message: `Data does not exist, ${result.length} records`
+                })
+            }
             this.report(req, resp, result)
         } catch (error) {
             resp.json({
                 status: "0",
                 message: `getSaleDetailByCustomer function error ${error}`
             })
-        } 
+        }
     }
- 
+
     // Use to Create PDF from jsReport localserver
     static report = async (req, resp, result) => {
         try {
@@ -35,82 +40,21 @@ class api_sales_report_control {
                     data: result
                 }
             }).then((response) => {
-                // resp.setHeader("Content-Type", "application/pdf");
-                // resp.setHeader("Content-Disposition", "attachment; filename=report.pdf");
-                response.pipe(resp)
-                // resp.send("hello")
-            }).catch((err) => {
-                console.log(err)
-            })
-        } catch (error) {
-            resp.json({
-                status: "0",
-                message: `report error ${error}`
-            })
-        }
-    }
-
-    // __________________________________________________________________
-
-    // for Developer Use
-    static test_sales_report = async (req, resp) => {
-        try {
-            const jsreport = jsreportClient(process.env.PCC_REPORT_SERVER);
-            jsreport.render({
-                template: {
-                    shortid: "BJen4M1JHle",
-                    // engine: "jsrender",
-                    // recipe: "chrome-pdf" 
-                },
-                data: {
-                    data: [
-                        {
-                            name: "hammad"
-                        },
-                        {
-                            name: "ali"
-                        },
-                        {
-                            name: "shaikh"
-                        }
-                    ]
-                }
-            }).then((response) => {
                 resp.setHeader("Content-Type", "application/pdf");
-                // resp.setHeader("Content-Disposition", "attachment; filename=report.pdf");
                 response.pipe(resp)
-                // resp.send("hello")
-            })
-                .catch((err) => {
-                    console.log(err)
-                })
-        } catch (error) {
-            resp.json({
-                status: "0",
-                message: `test_sales_report error ${error}`
-            })
-        }
-    }
-
-    // for Developer Use
-    static test_data_sales_report = async (req, resp) => {
-        try {
-            console.log(req.body)
-            const result = await sequelize.query("SELECT Customer.CustomerName, SVdetails.SVoucherDetailItemParticulars, SVdetails.SVoucherDetailSalePrice,  SVdetails.SVoucherDetailUOMName, SUM(SVdetails.SVoucherDetailQTY) AS SVoucherDetailQTY, SUM(SVdetails.SVoucherDetailTotalAmount) AS SVoucherDetailTotalAmount, SVoucherDate FROM `SVoucher` JOIN `SVoucherDetail` AS SVdetails ON SVoucherId = SVoucherDetailSVoucherId JOIN `Customer` ON CustomerId = SVoucherCustomerId WHERE SVoucherCustomerId = 4582 GROUP BY SVdetails.SVoucherDetailItemParticulars", {
-                replacements: req.body,
-                type: QueryTypes.SELECT
-            }
-            )
-            resp.json({
-                status: "1",
-                message: `Successfully get ${result.length} records`,
-                data: result
+            }).catch((err) => {
+                console.error("while report process function error:", err);
+                resp.json({
+                    status: "0",
+                    message: `while report process function error: ${err.message}`
+                });
             })
         } catch (error) {
+            console.error("report function error:", error);
             resp.json({
                 status: "0",
-                message: `test_data_sales_report function error ${error}`
-            })
+                message: `report function error: ${error.message}`
+            });
         }
     }
 }
